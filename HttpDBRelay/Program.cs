@@ -23,6 +23,7 @@ namespace HttpDBRelay
 			dbConnection = new SqlConnection("Server=localhost;Database=master;Trusted_Connection=True;");
 			dbConnection.Open();
 
+			//start http listener
 			httpListener = new HttpListener();
 			httpListener.Prefixes.Add("http://localhost:63321/");
 			httpListener.Start();
