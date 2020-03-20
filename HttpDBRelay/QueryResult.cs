@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace HttpDBRelay
 {
@@ -9,6 +7,6 @@ namespace HttpDBRelay
 		public bool Error { get; set; } = false;
 		public string ErrorText { get; set; } = "";
 		public List<string> ColumnNames { get; set; } = new List<string>();
-		public List<List<object>> Rows { get; set; } = new List<List<object>>();
+		public List<List<string>> Rows { get; set; } = new List<List<string>>();
 	}
 }

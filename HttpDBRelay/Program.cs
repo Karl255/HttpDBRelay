@@ -31,39 +31,40 @@ namespace HttpDBRelay
 			while (true)
 			{
 				//wait for next request
-				var c = await httpListener.GetContextAsync();
+				var requestContext = await httpListener.GetContextAsync();
 
 				//read request data
-				Stream requestStream = c.Request.InputStream;
-				string recivedQuery = new StreamReader(requestStream).ReadToEnd();
+				Stream requestStream = requestContext.Request.InputStream;
+				string receivedQuery = new StreamReader(requestStream).ReadToEnd();
 				requestStream.Dispose();
 
-				Console.WriteLine(recivedQuery);
+				Console.WriteLine($"Query: { receivedQuery }");
 
 				//run recieved query
 				var queryResponse = new QueryResult();
 
 				try
 				{
-					queryResponse = ExecuteQuery(recivedQuery);
+					queryResponse = ExecuteQuery(receivedQuery);
 				}
 				catch (Exception e)
 				{
 					queryResponse.Error = true;
-					queryResponse.ErrorText = e.ToString();
+					queryResponse.ErrorText = e.Message;
 				}
 
 				//construct JSON and response
 				string json = JsonSerializer.Serialize(queryResponse);
-				Console.WriteLine(json);
+				Console.WriteLine($"Json:  { json }");
 
-				var responseStreamWriter = new StreamWriter(c.Response.OutputStream);
+				requestContext.Response.StatusCode = 200;
+				var responseStreamWriter = new StreamWriter(requestContext.Response.OutputStream);
 				responseStreamWriter.Write(json);
 
 				//send response
 				responseStreamWriter.Dispose();
-				c.Response.OutputStream.Dispose();
-				c.Response.Close();
+				requestContext.Response.OutputStream.Dispose();
+				requestContext.Response.Close();
 			}
 		}
 
@@ -81,15 +82,13 @@ namespace HttpDBRelay
 			for (int i = 0; i < columns; i++)
 			{
 				string colName = dataReader.GetName(i);
-				Console.Write($"{colName,8}");
 				queryResult.ColumnNames.Add(colName);
 			}
-			Console.WriteLine();
 
 			//each row in the table
 			while (dataReader.Read())
 			{
-				var row = new List<object>();
+				var row = new List<string>();
 
 				//each column in row
 				for (int i = 0; i < columns; i++)
@@ -98,13 +97,11 @@ namespace HttpDBRelay
 
 					if (obj == DBNull.Value)
 					{
-						obj = null;
+						obj = "NULL";
 					}
 
-					Console.Write($"{ obj ?? "null",8 }");
-					row.Add(obj);
+					row.Add(obj.ToString());
 				}
-				Console.WriteLine();
 				queryResult.Rows.Add(row);
 			}
 
